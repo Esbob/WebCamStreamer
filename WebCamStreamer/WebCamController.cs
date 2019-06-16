@@ -19,6 +19,7 @@ namespace WebCamStreamer
             Gst.Application.Init();
             return;
 
+
             _sink = Parse.Launch(
             "uvch264src device=/dev/video0 initial-bitrate=3000000 average-bitrate=3000000 iframe-period=1000 name=uvcsrc1 auto-start=true uvcsrc1.vidsrc ! video/x-h264, framerate=30/1, width=1280, height=720 ! queue ! s.sink_0" + System.Environment.NewLine +
             "uvch264src device=/dev/video1 initial-bitrate=3000000 average-bitrate=3000000 iframe-period=1000 name=uvcsrc2 auto-start=true uvcsrc2.vidsrc ! video/x-h264, framerate=30/1, width=1280, height=720 ! queue ! s.sink_1" + System.Environment.NewLine +
