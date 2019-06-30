@@ -2,7 +2,8 @@
 {
     public class WebCamSetting
     {
-        public string DeviceId { get; set; }
+        public string VideoDeviceId { get; set; }
+        public string AudioDeviceId { get; set; }
         public string Name { get; set; }
     }
 }

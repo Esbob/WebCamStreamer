@@ -5,8 +5,10 @@ namespace WebCamStreamer
     public class AppSettings
     {
         public List<WebCamSetting> WebCamSettings { get; set; } = new List<WebCamSetting>();
-        public string SourcePipeline { get; set; }
-        public string SinkPipeline { get; set; }
+        public string VideoSourcePipeline { get; set; }
+        public string VideoSinkPipeline { get; set; }
+        public string AudioSourcePipeline { get; set; }
+        public string AudioSinkPipeline { get; set; }
         public string ServiceHostBaseAddress { get; set; }
     }
 }
