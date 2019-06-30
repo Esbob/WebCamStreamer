@@ -9,11 +9,10 @@ namespace WebCamStreamer
     {
         public WebServiceHostRunner()
         {
-            string baseaddr = "http://localhost:9999/WebCamController/";
-            Uri baseAddress = new Uri(baseaddr);
+            var baseAddressString = AppSettingsReader.GetAppSettings().ServiceHostBaseAddress;
+            var baseAddressUri = new Uri(baseAddressString);
 
-            // Create the ServiceHost.
-            using (var host = new WebServiceHost(typeof(WebCamController), baseAddress))
+            using (var host = new WebServiceHost(typeof(WebCamController), baseAddressUri))
             {
                 // Enable metadata publishing.
                 var smb = new ServiceMetadataBehavior();
@@ -21,19 +20,17 @@ namespace WebCamStreamer
                 //smb.MetadataExporter.PolicyVersion = PolicyVersion.Policy15;
                 host.Description.Behaviors.Add(smb);
 
-                host.AddServiceEndpoint(typeof(IWebCamController), new WebHttpBinding(), baseaddr);
-                host.AddServiceEndpoint(typeof(IWebCamController), new WebHttpBinding(), baseaddr + "StartStreaming");
-                host.AddServiceEndpoint(typeof(IWebCamController), new WebHttpBinding(), baseaddr + "ChangeWebCam");
-                host.AddServiceEndpoint(typeof(IWebCamController), new WebHttpBinding(), baseaddr + "StopStreaming");
-
-                //for some reason a default endpoint does not get created here
+                host.AddServiceEndpoint(typeof(IWebCamController), new WebHttpBinding(), baseAddressString);
+                host.AddServiceEndpoint(typeof(IWebCamController), new WebHttpBinding(), baseAddressString + "StartStreaming");
+                host.AddServiceEndpoint(typeof(IWebCamController), new WebHttpBinding(), baseAddressString + "ChangeWebCam");
+                host.AddServiceEndpoint(typeof(IWebCamController), new WebHttpBinding(), baseAddressString + "StopStreaming");
+                
                 host.Open();
 
-                Console.WriteLine("The service is ready at {0}", baseAddress);
+                Console.WriteLine("The service is ready at {0}", baseAddressUri);
                 Console.WriteLine("Press <Enter> to stop the service.");
                 Console.ReadLine();
 
-                // Close the ServiceHost.
                 host.Close();
             }
         }

@@ -1,85 +1,72 @@
 ﻿using System;
-using System.IO;
-// using GLib;
 using Gst;
-using Microsoft.Extensions.Configuration;
 
 namespace WebCamStreamer
 {
     public class WebCamController : IWebCamController
     {
-        Element _sink = null;
-        string _currentWebcamName = "WC1";
-
+        private readonly Element _pipeline;
+        private readonly AppSettings _appSettings;
+        private const string SelectorName = "selector";
+        private const string SinkSelector = "sink_{0}";
 
         public WebCamController()
         {
-            var appSettings = GetAppSettings();
-
-            Gst.Application.Init();
-            return;
-
-
-            _sink = Parse.Launch(
-            "uvch264src device=/dev/video0 initial-bitrate=3000000 average-bitrate=3000000 iframe-period=1000 name=uvcsrc1 auto-start=true uvcsrc1.vidsrc ! video/x-h264, framerate=30/1, width=1280, height=720 ! queue ! s.sink_0" + System.Environment.NewLine +
-            "uvch264src device=/dev/video1 initial-bitrate=3000000 average-bitrate=3000000 iframe-period=1000 name=uvcsrc2 auto-start=true uvcsrc2.vidsrc ! video/x-h264, framerate=30/1, width=1280, height=720 ! queue ! s.sink_1" + System.Environment.NewLine +
-            "videotestsrc pattern=black is-live=true ! x264enc pass=5 quantizer=25 speed-preset=6 ! video/x-h264, framerate=30/1, width=1920, height=1080 ! queue ! s.sink_2" + System.Environment.NewLine +
-            "input-selector name=s sync-mode=1 ! rtph264pay config-interval=1 pt=96 ! udpsink host=127.0.0.1 port=8004");
+            _appSettings = AppSettingsReader.GetAppSettings();
+            Application.Init();
+            _pipeline = Parse.Launch(CreatePipeline());
         }
 
-        private string GetFormattedPipelineSource(AppSettings appSettings, WebCamSetting webCamSetting)
+        private string CreatePipeline()
         {
-            var s = String.Format(appSettings.SourcePipeline, webCamSetting.DeviceId, webCamSetting.Name);
+            var pipeline = String.Empty;
+
+            for (var index = 0; index < _appSettings.WebCamSettings.Count; index++)
+            {
+                var webCamSetting = _appSettings.WebCamSettings[index];
+                pipeline += GetFormattedPipelineSource(webCamSetting, index) + Environment.NewLine;
+            }
+
+            pipeline += _appSettings.SinkPipeline;
+            return pipeline;
+        }
+
+        private string GetFormattedPipelineSource(WebCamSetting webCamSetting, int index)
+        {
+            var s = String.Format(_appSettings.SourcePipeline, webCamSetting.DeviceId, webCamSetting.Name, index);
             return s;
         }
-
-        private string GetFormattedPipelineSink(AppSettings appSettings, WebCamSetting webCamSetting)
-        {
-            var s = String.Format(appSettings.SinkPipeline, webCamSetting.Name);
-            return s;
-        }
-
+        
         public string ChangeWebCam(string webCamName)
         {
-            var @switch = ((Bin)_sink).GetByName("s");
-            var newpad = @switch.GetStaticPad("sink_" + webCamName);
-            @switch["active-pad"] = newpad;
+            var selector = ((Bin)_pipeline).GetByName(SelectorName);
+            var padName = String.Format(SinkSelector, ConvertWebCamNameToSinkIndex(webCamName));
+            var newPad = selector.GetStaticPad(padName);
+            selector["active-pad"] = newPad;
             return webCamName;
         }
 
-        private static Element GetBaseElement(Element element, string elementName)
+        private int ConvertWebCamNameToSinkIndex(string webCamName)
         {
-            return ((Bin)element).GetByName(elementName);
+            return _appSettings.WebCamSettings.FindIndex(setting => setting.Name == webCamName);
         }
 
         public bool StartStreaming()
         {
-            _sink.ChangeState(StateChange.NullToReady);
-            _sink.ChangeState(StateChange.ReadyToPaused);
-            _sink.ChangeState(StateChange.PausedToPlaying);
+            _pipeline.ChangeState(StateChange.NullToReady);
+            _pipeline.ChangeState(StateChange.ReadyToPaused);
+            _pipeline.ChangeState(StateChange.PausedToPlaying);
 
             return true;
         }
 
         public bool StopStreaming()
         {
-            _sink.ChangeState(StateChange.PlayingToPaused);
-            _sink.ChangeState(StateChange.PausedToReady);
-            _sink.ChangeState(StateChange.ReadyToNull);
+            _pipeline.ChangeState(StateChange.PlayingToPaused);
+            _pipeline.ChangeState(StateChange.PausedToReady);
+            _pipeline.ChangeState(StateChange.ReadyToNull);
 
             return true;
-        }
-
-        private static AppSettings GetAppSettings()
-        {
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true, true)
-                .Build();
-
-            var appSettings = new AppSettings();
-            config.Bind(appSettings);
-            return appSettings;
         }
     }
 }
