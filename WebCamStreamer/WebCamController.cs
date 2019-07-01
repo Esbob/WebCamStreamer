@@ -61,6 +61,8 @@ namespace WebCamStreamer
 
         public string ChangeWebCam(string webCamName)
         {
+            Console.WriteLine($"ChangeWebCam invoked with webCamName='{webCamName}'");
+
             var videoSelector = ((Bin)_videoPipeline).GetByName(SelectorName);
             var audioSelector = ((Bin)_audioPipeline).GetByName(SelectorName);
 
@@ -82,6 +84,8 @@ namespace WebCamStreamer
 
         public bool StartStreaming()
         {
+            Console.WriteLine("StartStreaming invoked");
+
             _videoPipeline.ChangeState(StateChange.NullToReady);
             _videoPipeline.ChangeState(StateChange.ReadyToPaused);
             _videoPipeline.ChangeState(StateChange.PausedToPlaying);
@@ -93,6 +97,8 @@ namespace WebCamStreamer
 
         public bool StopStreaming()
         {
+            Console.WriteLine("StopStreaming invoked");
+
             _videoPipeline.ChangeState(StateChange.PlayingToPaused);
             _videoPipeline.ChangeState(StateChange.PausedToReady);
             _videoPipeline.ChangeState(StateChange.ReadyToNull);
