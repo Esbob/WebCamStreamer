@@ -8,6 +8,7 @@ namespace WebCamStreamer
         private readonly Element _videoPipeline;
         private readonly Element _audioPipeline;
         private readonly AppSettings _appSettings;
+        private bool _isStreaming;
         private const string SelectorName = "selector";
         private const string SinkSelector = "sink_{0}";
 
@@ -84,6 +85,12 @@ namespace WebCamStreamer
 
         public bool StartStreaming()
         {
+            if (_isStreaming)
+            {
+                Console.WriteLine("StartStreaming invoked - already streaming");
+                return true;
+            }
+
             Console.WriteLine("StartStreaming invoked");
 
             _videoPipeline.ChangeState(StateChange.NullToReady);
@@ -92,11 +99,19 @@ namespace WebCamStreamer
 
             _audioPipeline.ChangeState(StateChange.PausedToPlaying);
 
+            _isStreaming = true;
+
             return true;
         }
 
         public bool StopStreaming()
         {
+            if (!_isStreaming)
+            {
+                Console.WriteLine("StopStreaming invoked - already not streaming");
+                return true;
+            }
+
             Console.WriteLine("StopStreaming invoked");
 
             _videoPipeline.ChangeState(StateChange.PlayingToPaused);
@@ -106,6 +121,8 @@ namespace WebCamStreamer
             _audioPipeline.ChangeState(StateChange.PlayingToPaused);
             _audioPipeline.ChangeState(StateChange.PausedToReady);
             _audioPipeline.ChangeState(StateChange.ReadyToNull);
+
+            _isStreaming = false;
 
             return true;
         }

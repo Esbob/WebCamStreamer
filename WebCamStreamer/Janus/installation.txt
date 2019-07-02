@@ -1,0 +1,53 @@
+﻿Janus install:
+
+wget https://github.com/cisco/libsrtp/archive/v2.2.0.tar.gz
+tar xfv v2.2.0.tar.gz
+cd libsrtp-2.2.0
+./configure --prefix=/usr --enable-openssl
+make shared_library && sudo make install
+
+sudo aptitude install libsrtp2-dev???
+
+sudo apt install aptitude
+
+sudo aptitude install libmicrohttpd-dev libjansson-dev libnice-dev libssl-dev libsrtp-dev libsofia-sip-ua-dev libglib2.0-dev libopus-dev libogg-dev libini-config-dev libcollection-dev pkg-config gengetopt libtool automake dh-autoreconf
+
+sudo apt-get install libconfig-dev
+
+git clone https://github.com/meetecho/janus-gateway.git
+cd janus-gateway
+sh autogen.sh
+./configure --disable-websockets --disable-data-channels --disable-rabbitmq --disable-docs --prefix=/opt/janus
+make
+sudo make install
+sudo make configs
+sudo nano /opt/janus/etc/janus/janus.plugin.streaming.jcfg 
+Uncomment all then insert:
+gst-rpwc: {
+        type = "rtp"
+        id = 1
+        description = "RPWC H264 test streaming"
+        audio = true
+        audioport = 8005
+        audiopt = 10
+        audiortpmap = "opus/48000/2"
+        video = true
+        videoport = 8004
+        videopt = 96
+        videortpmap = "H264/90000"
+        videofmtp = "profile-level-id=42e028\;packetization-mode=1"
+}
+
+sudo aptitude install nginx
+sudo cp -r /opt/janus/share/janus/demos/ /usr/share/nginx/html/
+
+sudo nano /etc/nginx/sites-enabled/default
+Set: 
+root /usr/share/nginx/html/;
+
+Restart nginx:
+sudo service nginx restart
+
+Start janus:
+cd /opt/janus/bin/
+sudo ./janus -F /opt/janus/etc/janus/
