@@ -105,6 +105,8 @@
     <None Include="Janus\janus.plugin.streaming.jcfg" />
     <None Include="Janus\janus.transport.http.jcfg" />
     <None Include="Janus\installation.txt" />
+    <None Include="Janus\83-webcam.rules" />
+    <None Include="Janus\83-webcam rules installation.txt" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Pipelines.txt" />

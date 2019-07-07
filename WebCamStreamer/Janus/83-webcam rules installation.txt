@@ -1,0 +1,8 @@
+Based on: https://wiki.archlinux.org/index.php/Udev
+
+1. Identify webcam properties:
+udevadm info -a -p $(udevadm info -q path -n /dev/videoX)   --> Replace X with video device number
+
+2. Create new line in 83-webcam.rules
+
+3. Copy 83-webcam.rules to /etc/udev/rules.d
